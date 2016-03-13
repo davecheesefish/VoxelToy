@@ -1,6 +1,8 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using VoxelToy.Environment;
 
 namespace VoxelToy
 {
@@ -11,6 +13,9 @@ namespace VoxelToy
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+
+        Camera camera;
+        World world;
 
         public Game1()
         {
@@ -26,7 +31,16 @@ namespace VoxelToy
         /// </summary>
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
+            // Set up game services container.
+            GameServices.ContentManager = Content;
+            GameServices.GraphicsDeviceManager = graphics;
+            GameServices.GraphicsDevice = GraphicsDevice;
+            GameServices.Random = new Random();
+
+            GameSettings.Initialize();
+
+            world = new World(100, 10, 100);
+            camera = new Camera(new Vector3(48, 12, 48), new Vector3(0, 0, 0));
 
             base.Initialize();
         }
@@ -62,7 +76,11 @@ namespace VoxelToy
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // TODO: Add your update logic here
+            Vector3 cameraTarget = camera.Target;
+            cameraTarget.X = camera.Position.X + (float)Math.Cos(gameTime.TotalGameTime.TotalSeconds / 3.0);
+            cameraTarget.Y = camera.Position.Y - 0.5f;
+            cameraTarget.Z = camera.Position.Z + (float)Math.Sin(gameTime.TotalGameTime.TotalSeconds / 3.0);
+            camera.Target = cameraTarget;
 
             base.Update(gameTime);
         }
@@ -73,9 +91,9 @@ namespace VoxelToy
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
 
-            // TODO: Add your drawing code here
+            world.Draw(camera);
 
             base.Draw(gameTime);
         }
