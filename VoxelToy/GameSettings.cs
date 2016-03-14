@@ -39,7 +39,7 @@ namespace VoxelToy
             GameServices.GraphicsDeviceManager.PreferredBackBufferHeight = 720;
             GameServices.GraphicsDeviceManager.ApplyChanges();
 
-            FieldOfView = (float)MathHelper.PiOver2;
+            FieldOfView = (float)Math.PI * 0.35f;
         }
 
         private static void RecalculatePfovMatrix()

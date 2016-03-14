@@ -39,8 +39,8 @@ namespace VoxelToy
 
             GameSettings.Initialize();
 
-            world = new World(100, 10, 100);
-            camera = new Camera(new Vector3(48, 12, 48), new Vector3(0, 0, 0));
+            world = new World(300, 20, 300);
+            camera = new Camera(new Vector3(150, 28, 150), new Vector3(0, 0, 0));
 
             base.Initialize();
         }
@@ -78,7 +78,7 @@ namespace VoxelToy
 
             Vector3 cameraTarget = camera.Target;
             cameraTarget.X = camera.Position.X + (float)Math.Cos(gameTime.TotalGameTime.TotalSeconds / 3.0);
-            cameraTarget.Y = camera.Position.Y - 0.5f;
+            cameraTarget.Y = camera.Position.Y - 0.65f;
             cameraTarget.Z = camera.Position.Z + (float)Math.Sin(gameTime.TotalGameTime.TotalSeconds / 3.0);
             camera.Target = cameraTarget;
 
