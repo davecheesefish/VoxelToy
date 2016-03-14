@@ -40,7 +40,7 @@ namespace VoxelToy
             GameSettings.Initialize();
 
             world = new World(300, 20, 300);
-            camera = new Camera(new Vector3(150, 28, 150), new Vector3(0, 0, 0));
+            camera = new Camera(new Vector3(0, 0, 0), new Vector3(150, 10, 150));
 
             base.Initialize();
         }
@@ -76,11 +76,11 @@ namespace VoxelToy
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            Vector3 cameraTarget = camera.Target;
-            cameraTarget.X = camera.Position.X + (float)Math.Cos(gameTime.TotalGameTime.TotalSeconds / 3.0);
-            cameraTarget.Y = camera.Position.Y - 0.65f;
-            cameraTarget.Z = camera.Position.Z + (float)Math.Sin(gameTime.TotalGameTime.TotalSeconds / 3.0);
-            camera.Target = cameraTarget;
+            Vector3 cameraPos = camera.Position;
+            cameraPos.X = camera.Target.X + 60.0f * (float)Math.Cos(gameTime.TotalGameTime.TotalSeconds / 3.0);
+            cameraPos.Y = camera.Target.Y + 25.0f;
+            cameraPos.Z = camera.Target.Z + 60.0f * (float)Math.Sin(gameTime.TotalGameTime.TotalSeconds / 3.0);
+            camera.Position = cameraPos;
 
             base.Update(gameTime);
         }

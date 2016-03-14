@@ -33,10 +33,10 @@ namespace VoxelToy.Environment
                 {
                     for (int z = 0; z < length; ++z)
                     {
-                        if (y <= height * (Math.Cos(0.1 * (x + z)) + 1.0) / 2.0)
+                        if (y <= height * (((Math.Cos(0.1 * x) + 1.0) / 4.0) + ((Math.Sin(0.1 * z) + 1.0) / 4.0)))
                         {
-                            int rand = 100 + GameServices.Random.Next(156);
-                            blocks[x, y, z] = new Block(new Color(10, rand, 10));
+                            int rand = 80 + GameServices.Random.Next(126);
+                            blocks[x, y, z] = new Block(new Color(rand / 8, rand, 10));
                         }
                         else
                         {
