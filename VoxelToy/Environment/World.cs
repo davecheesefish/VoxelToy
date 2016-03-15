@@ -11,6 +11,7 @@ namespace VoxelToy.Environment
     {
         private int triCount = 0;
         private int primitiveCount = 0;
+        private bool isDirty = true;
 
         private int width;
         private int height;
@@ -18,6 +19,7 @@ namespace VoxelToy.Environment
         private Block[,,] blocks;
         private BasicEffect effect;
         private VertexBuffer vertexBuffer;
+        private Texture2D blockTexture;
 
         public World(int width, int height, int length)
         {
@@ -33,10 +35,10 @@ namespace VoxelToy.Environment
                 {
                     for (int z = 0; z < length; ++z)
                     {
-                        if (y <= height * (((Math.Cos(0.1 * x) + 1.0) / 4.0) + ((Math.Sin(0.1 * z) + 1.0) / 4.0)))
+                        if (y <= height * (((Math.Cos(0.1 * (x + z)) + 1.0) / 4.0) + ((Math.Cos(0.1 * z) + 1.0) / 4.0)))
                         {
                             int rand = 80 + GameServices.Random.Next(126);
-                            blocks[x, y, z] = new Block(new Color(rand / 8, rand, 10));
+                            blocks[x, y, z] = new Block(BlockType.Get("grass"));
                         }
                         else
                         {
@@ -46,12 +48,26 @@ namespace VoxelToy.Environment
                 }
             }
 
-            // Construct vertices
-            ReconstructBlockFaceVisibility();
-            ReconstructVertices();
-
             effect = new BasicEffect(GameServices.GraphicsDevice);
             effect.VertexColorEnabled = true;
+        }
+
+        public void LoadContent()
+        {
+            blockTexture = GameServices.ContentManager.Load<Texture2D>(@"textures/blocks");
+            effect.TextureEnabled = true;
+            effect.Texture = blockTexture;
+            effect.AmbientLightColor = Color.White.ToVector3();
+        }
+
+        public void Update(GameTime gameTime)
+        {
+            if (isDirty)
+            {
+                ReconstructBlockFaceVisibility();
+                ReconstructVertices();
+                isDirty = false;
+            }
         }
 
         public void Draw(Camera camera)
@@ -137,7 +153,7 @@ namespace VoxelToy.Environment
         public void ReconstructVertices()
         {
             Block block;
-            List<VertexPositionColor> vertices = new List<VertexPositionColor>();
+            List<VertexPositionColorTexture> vertices = new List<VertexPositionColorTexture>();
 
             primitiveCount = 0;
 
@@ -166,80 +182,94 @@ namespace VoxelToy.Environment
                         Vector3 xpypz = new Vector3(x, y + 1, z + 1);
                         Vector3 pxpypz = new Vector3(x + 1, y + 1, z + 1);
 
+                        Vector2[] uvCoords; // UV co-ordinates for each vertex.
+
                         if ((block.VisibleFaces & AxisDirections.XNegative) > 0)
                         {
-                            vertices.Add(new VertexPositionColor(xypz, block.Color));
-                            vertices.Add(new VertexPositionColor(xpypz, block.Color));
-                            vertices.Add(new VertexPositionColor(xpyz, block.Color));
+                            uvCoords = block.BlockType.GetUvCoordinates(AxisDirections.XNegative, blockTexture.Width);
 
-                            vertices.Add(new VertexPositionColor(xypz, block.Color));
-                            vertices.Add(new VertexPositionColor(xpyz, block.Color));
-                            vertices.Add(new VertexPositionColor(xyz, block.Color));
+                            vertices.Add(new VertexPositionColorTexture(xypz, Color.White, uvCoords[0]));
+                            vertices.Add(new VertexPositionColorTexture(xpypz, Color.White, uvCoords[1]));
+                            vertices.Add(new VertexPositionColorTexture(xpyz, Color.White, uvCoords[2]));
+
+                            vertices.Add(new VertexPositionColorTexture(xypz, Color.White, uvCoords[0]));
+                            vertices.Add(new VertexPositionColorTexture(xpyz, Color.White, uvCoords[2]));
+                            vertices.Add(new VertexPositionColorTexture(xyz, Color.White, uvCoords[3]));
 
                             primitiveCount += 2;
                         }
 
                         if ((block.VisibleFaces & AxisDirections.XPositive) > 0)
                         {
-                            vertices.Add(new VertexPositionColor(pxyz, block.Color));
-                            vertices.Add(new VertexPositionColor(pxpyz, block.Color));
-                            vertices.Add(new VertexPositionColor(pxpypz, block.Color));
+                            uvCoords = block.BlockType.GetUvCoordinates(AxisDirections.XPositive, blockTexture.Width);
 
-                            vertices.Add(new VertexPositionColor(pxyz, block.Color));
-                            vertices.Add(new VertexPositionColor(pxpypz, block.Color));
-                            vertices.Add(new VertexPositionColor(pxypz, block.Color));
+                            vertices.Add(new VertexPositionColorTexture(pxyz, Color.White, uvCoords[0]));
+                            vertices.Add(new VertexPositionColorTexture(pxpyz, Color.White, uvCoords[1]));
+                            vertices.Add(new VertexPositionColorTexture(pxpypz, Color.White, uvCoords[2]));
+
+                            vertices.Add(new VertexPositionColorTexture(pxyz, Color.White, uvCoords[0]));
+                            vertices.Add(new VertexPositionColorTexture(pxpypz, Color.White, uvCoords[2]));
+                            vertices.Add(new VertexPositionColorTexture(pxypz, Color.White, uvCoords[3]));
 
                             primitiveCount += 2;
                         }
 
                         if ((block.VisibleFaces & AxisDirections.YNegative) > 0)
                         {
-                            vertices.Add(new VertexPositionColor(xypz, block.Color));
-                            vertices.Add(new VertexPositionColor(xyz, block.Color));
-                            vertices.Add(new VertexPositionColor(pxyz, block.Color));
+                            uvCoords = block.BlockType.GetUvCoordinates(AxisDirections.YNegative, blockTexture.Width);
 
-                            vertices.Add(new VertexPositionColor(xypz, block.Color));
-                            vertices.Add(new VertexPositionColor(pxyz, block.Color));
-                            vertices.Add(new VertexPositionColor(pxypz, block.Color));
+                            vertices.Add(new VertexPositionColorTexture(xypz, Color.White, uvCoords[0]));
+                            vertices.Add(new VertexPositionColorTexture(xyz, Color.White, uvCoords[1]));
+                            vertices.Add(new VertexPositionColorTexture(pxyz, Color.White, uvCoords[2]));
+
+                            vertices.Add(new VertexPositionColorTexture(xypz, Color.White, uvCoords[0]));
+                            vertices.Add(new VertexPositionColorTexture(pxyz, Color.White, uvCoords[2]));
+                            vertices.Add(new VertexPositionColorTexture(pxypz, Color.White, uvCoords[3]));
 
                             primitiveCount += 2;
                         }
 
                         if ((block.VisibleFaces & AxisDirections.YPositive) > 0)
                         {
-                            vertices.Add(new VertexPositionColor(xpyz, block.Color));
-                            vertices.Add(new VertexPositionColor(xpypz, block.Color));
-                            vertices.Add(new VertexPositionColor(pxpypz, block.Color));
+                            uvCoords = block.BlockType.GetUvCoordinates(AxisDirections.YPositive, blockTexture.Width);
 
-                            vertices.Add(new VertexPositionColor(xpyz, block.Color));
-                            vertices.Add(new VertexPositionColor(pxpypz, block.Color));
-                            vertices.Add(new VertexPositionColor(pxpyz, block.Color));
+                            vertices.Add(new VertexPositionColorTexture(xpyz, Color.White, uvCoords[0]));
+                            vertices.Add(new VertexPositionColorTexture(xpypz, Color.White, uvCoords[1]));
+                            vertices.Add(new VertexPositionColorTexture(pxpypz, Color.White, uvCoords[2]));
+
+                            vertices.Add(new VertexPositionColorTexture(xpyz, Color.White, uvCoords[0]));
+                            vertices.Add(new VertexPositionColorTexture(pxpypz, Color.White, uvCoords[2]));
+                            vertices.Add(new VertexPositionColorTexture(pxpyz, Color.White, uvCoords[3]));
 
                             primitiveCount += 2;
                         }
 
                         if ((block.VisibleFaces & AxisDirections.ZNegative) > 0)
                         {
-                            vertices.Add(new VertexPositionColor(xyz, block.Color));
-                            vertices.Add(new VertexPositionColor(xpyz, block.Color));
-                            vertices.Add(new VertexPositionColor(pxpyz, block.Color));
+                            uvCoords = block.BlockType.GetUvCoordinates(AxisDirections.ZNegative, blockTexture.Width);
 
-                            vertices.Add(new VertexPositionColor(xyz, block.Color));
-                            vertices.Add(new VertexPositionColor(pxpyz, block.Color));
-                            vertices.Add(new VertexPositionColor(pxyz, block.Color));
+                            vertices.Add(new VertexPositionColorTexture(xyz, Color.White, uvCoords[0]));
+                            vertices.Add(new VertexPositionColorTexture(xpyz, Color.White, uvCoords[1]));
+                            vertices.Add(new VertexPositionColorTexture(pxpyz, Color.White, uvCoords[2]));
+
+                            vertices.Add(new VertexPositionColorTexture(xyz, Color.White, uvCoords[0]));
+                            vertices.Add(new VertexPositionColorTexture(pxpyz, Color.White, uvCoords[2]));
+                            vertices.Add(new VertexPositionColorTexture(pxyz, Color.White, uvCoords[3]));
 
                             primitiveCount += 2;
                         }
 
                         if ((block.VisibleFaces & AxisDirections.ZPositive) > 0)
                         {
-                            vertices.Add(new VertexPositionColor(pxypz, block.Color));
-                            vertices.Add(new VertexPositionColor(pxpypz, block.Color));
-                            vertices.Add(new VertexPositionColor(xpypz, block.Color));
+                            uvCoords = block.BlockType.GetUvCoordinates(AxisDirections.ZPositive, blockTexture.Width);
 
-                            vertices.Add(new VertexPositionColor(pxypz, block.Color));
-                            vertices.Add(new VertexPositionColor(xpypz, block.Color));
-                            vertices.Add(new VertexPositionColor(xypz, block.Color));
+                            vertices.Add(new VertexPositionColorTexture(pxypz, Color.White, uvCoords[0]));
+                            vertices.Add(new VertexPositionColorTexture(pxpypz, Color.White, uvCoords[1]));
+                            vertices.Add(new VertexPositionColorTexture(xpypz, Color.White, uvCoords[2]));
+
+                            vertices.Add(new VertexPositionColorTexture(pxypz, Color.White, uvCoords[0]));
+                            vertices.Add(new VertexPositionColorTexture(xpypz, Color.White, uvCoords[2]));
+                            vertices.Add(new VertexPositionColorTexture(xypz, Color.White, uvCoords[3]));
 
                             primitiveCount += 2;
                         }
@@ -249,8 +279,8 @@ namespace VoxelToy.Environment
             
             vertices.Reverse();
 
-            vertexBuffer = new VertexBuffer(GameServices.GraphicsDevice, typeof(VertexPositionColor), vertices.Count, BufferUsage.WriteOnly);
-            vertexBuffer.SetData<VertexPositionColor>(vertices.ToArray());
+            vertexBuffer = new VertexBuffer(GameServices.GraphicsDevice, typeof(VertexPositionColorTexture), vertices.Count, BufferUsage.WriteOnly);
+            vertexBuffer.SetData<VertexPositionColorTexture>(vertices.ToArray());
         }
 
         /// <summary>

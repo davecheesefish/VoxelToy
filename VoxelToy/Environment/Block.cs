@@ -16,16 +16,14 @@ namespace VoxelToy.Environment
         public AxisDirections VisibleFaces = 0;
 
         /// <summary>
-        /// The colour of this block.
+        /// The type of block this is, e.g. a wood block.
         /// </summary>
-        public Color Color { get { return color; } }
-        private Color color;
+        public BlockType BlockType { get { return blockType; } }
+        private BlockType blockType;
 
-        private VertexPositionColor[] vertices;
-
-        public Block(Color color)
+        public Block(BlockType blockType)
         {
-            this.color = color;
+            this.blockType = blockType;
         }
 
         public void SetFaceVisible(AxisDirections face)

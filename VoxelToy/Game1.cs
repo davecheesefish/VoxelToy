@@ -31,6 +31,8 @@ namespace VoxelToy
         /// </summary>
         protected override void Initialize()
         {
+            this.IsMouseVisible = true;
+            
             // Set up game services container.
             GameServices.ContentManager = Content;
             GameServices.GraphicsDeviceManager = graphics;
@@ -39,8 +41,13 @@ namespace VoxelToy
 
             GameSettings.Initialize();
 
-            world = new World(300, 20, 300);
-            camera = new Camera(new Vector3(0, 0, 0), new Vector3(150, 10, 150));
+            BlockType.RegisterStandardBlockTypes();
+
+            world = new World(400, 20, 400);
+            camera = new Camera(new Vector3(0, 0, 0), new Vector3(250, 10, 250));
+
+            // Set sampler state to PointWrap to avoid blurry textures
+            GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
 
             base.Initialize();
         }
@@ -54,7 +61,7 @@ namespace VoxelToy
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // TODO: use this.Content to load your game content here
+            world.LoadContent();
         }
 
         /// <summary>
@@ -76,10 +83,12 @@ namespace VoxelToy
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
+            world.Update(gameTime);
+
             Vector3 cameraPos = camera.Position;
-            cameraPos.X = camera.Target.X + 60.0f * (float)Math.Cos(gameTime.TotalGameTime.TotalSeconds / 3.0);
-            cameraPos.Y = camera.Target.Y + 25.0f;
-            cameraPos.Z = camera.Target.Z + 60.0f * (float)Math.Sin(gameTime.TotalGameTime.TotalSeconds / 3.0);
+            cameraPos.X = camera.Target.X + 30.0f * (float)Math.Cos(gameTime.TotalGameTime.TotalSeconds / 3.0);
+            cameraPos.Y = camera.Target.Y + 5.0f + (10.0f * ((float)Math.Cos(gameTime.TotalGameTime.TotalSeconds / 3.0) + 1.0f) / 2.0f);
+            cameraPos.Z = camera.Target.Z + 50.0f * (float)Math.Sin(gameTime.TotalGameTime.TotalSeconds / 3.0);
             camera.Position = cameraPos;
 
             base.Update(gameTime);
@@ -91,7 +100,7 @@ namespace VoxelToy
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.Clear(Color.SkyBlue);
 
             world.Draw(camera);
 
