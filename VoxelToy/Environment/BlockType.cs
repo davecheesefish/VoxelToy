@@ -11,12 +11,23 @@ namespace VoxelToy.Environment
         public string Name { get { return name; } }
         private string name;
 
+        /// <summary>
+        /// Whether this block is drawable or not. This will generally be set to false, except on
+        /// air blocks and other administrative blocks.
+        /// </summary>
+        public bool IsInvisible = false;
+
         private Rectangle topTextureRect;
         private Rectangle sideTextureRect;
         private Rectangle bottomTextureRect;
 
         private static Dictionary<string, BlockType> blockTypeRegistry;
-        
+
+        public BlockType(string name)
+        {
+            this.name = name;
+        }
+
         /// <summary>
         /// Contructs a new BlockType.
         /// </summary>
@@ -59,7 +70,7 @@ namespace VoxelToy.Environment
         /// <param name="face">The face to return the co-ordinates for.</param>
         /// <param name="textureSize">Side length of the texture file containing the block textures.</param>
         /// <returns>An array of vectors representing the UV co-ordinates of the four corners, clockwise from the bottom-left.</returns>
-        public Vector2[] GetUvCoordinates(AxisDirections face, int textureSize)
+        public Vector2[] GetUvCoordinates(AxisDirections face)
         {
             Rectangle textureRect;
             Vector2[] uvCoords = new Vector2[4];
@@ -92,10 +103,10 @@ namespace VoxelToy.Environment
                     throw new ArgumentException("Argument must be a single side.");
             }
 
-            top = (float)textureRect.Top / (float)textureSize;
-            left = (float)textureRect.Left / (float)textureSize;
-            bottom = (float)textureRect.Bottom / (float)textureSize;
-            right = (float)textureRect.Right / (float)textureSize;
+            top = (float)textureRect.Top / (float)GameSettings.BLOCK_ATLAS_HEIGHT;
+            left = (float)textureRect.Left / (float)GameSettings.BLOCK_ATLAS_WIDTH;
+            bottom = (float)textureRect.Bottom / (float)GameSettings.BLOCK_ATLAS_HEIGHT;
+            right = (float)textureRect.Right / (float)GameSettings.BLOCK_ATLAS_WIDTH;
 
             uvCoords[0] = new Vector2(left, bottom);
             uvCoords[1] = new Vector2(left, top);
@@ -126,6 +137,12 @@ namespace VoxelToy.Environment
         /// </summary>
         public static void RegisterStandardBlockTypes()
         {
+            // Register air block type
+            BlockType airBlockType = new BlockType("Air");
+            airBlockType.IsInvisible = true;
+            Register(airBlockType, "air");
+            
+            // Register other block types
             Register(new BlockType("Grass", new Rectangle(0, 0, 8, 8), new Rectangle(8, 0, 8, 8), new Rectangle(16, 0, 8, 8)), "grass");
             Register(new BlockType("Dirt", new Rectangle(16, 0, 8, 8)), "dirt");
             Register(new BlockType("Debug", new Rectangle(0, 8, 8, 8)), "debug");

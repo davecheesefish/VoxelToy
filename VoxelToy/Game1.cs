@@ -43,8 +43,8 @@ namespace VoxelToy
 
             BlockType.RegisterStandardBlockTypes();
 
-            world = new World(400, 20, 400);
-            camera = new Camera(new Vector3(0, 0, 0), new Vector3(250, 10, 250));
+            world = new World(10, 10, new Environment.Generators.FlatTerrainGenerator());
+            camera = new Camera(new Vector3(0, 0, 0), new Vector3(100, 16, 100));
 
             // Set sampler state to PointWrap to avoid blurry textures
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
@@ -82,8 +82,6 @@ namespace VoxelToy
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-
-            world.Update(gameTime);
 
             Vector3 cameraPos = camera.Position;
             cameraPos.X = camera.Target.X + 30.0f * (float)Math.Cos(gameTime.TotalGameTime.TotalSeconds / 3.0);

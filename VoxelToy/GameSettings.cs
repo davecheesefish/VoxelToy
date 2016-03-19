@@ -9,6 +9,16 @@ namespace VoxelToy
     static class GameSettings
     {
         /// <summary>
+        /// Width of the texture atlas for blocks, in texels.
+        /// </summary>
+        public const int BLOCK_ATLAS_WIDTH = 256;
+
+        /// <summary>
+        /// Height of the texture atlas for blocks, in texels.
+        /// </summary>
+        public const int BLOCK_ATLAS_HEIGHT = 256;
+        
+        /// <summary>
         /// The field ov fiew used for drawing the 3D world.
         /// </summary>
         public static float FieldOfView

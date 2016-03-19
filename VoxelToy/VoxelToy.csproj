@@ -41,6 +41,9 @@
     <Compile Include="Camera.cs" />
     <Compile Include="Environment\AxisDirections.cs" />
     <Compile Include="Environment\BlockType.cs" />
+    <Compile Include="Environment\Chunk.cs" />
+    <Compile Include="Environment\Generators\FlatTerrainGenerator.cs" />
+    <Compile Include="Environment\Generators\TerrainGenerator.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="GameSettings.cs" />
     <Compile Include="Program.cs" />
@@ -48,6 +51,8 @@
     <Compile Include="GameServices.cs" />
     <Compile Include="Environment\Block.cs" />
     <Compile Include="Environment\World.cs" />
+    <Compile Include="Vector2Int.cs" />
+    <Compile Include="Vector3Int.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework">
