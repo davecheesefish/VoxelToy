@@ -81,6 +81,12 @@ namespace VoxelToy.Environment
                         chunk.Rebuild();
                     }
 
+                    // If there are no vertices to draw, skip this chunk.
+                    if (chunk.VertexBuffer == null)
+                    {
+                        continue;
+                    }
+
                     // Get the vertices for the chunk
                     GameServices.GraphicsDevice.SetVertexBuffer(chunk.VertexBuffer);
 

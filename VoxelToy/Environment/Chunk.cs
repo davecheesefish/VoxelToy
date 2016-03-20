@@ -20,12 +20,12 @@ namespace VoxelToy.Environment
         /// <summary>
         /// Side length of an individual chunk along the Y axis.
         /// </summary>
-        public const byte HEIGHT = 32;
+        public const byte HEIGHT = 64;
 
         /// <summary>
         /// Side length of an individual chunk along the Z axis.
         /// </summary>
-        public const byte LENGTH = 16;
+        public const byte LENGTH = 32;
 
         /// <summary>
         /// X co-ordinate of this chunk, in chunks.
@@ -321,8 +321,15 @@ namespace VoxelToy.Environment
             // For some reason the list converts to an array in the wrong order, so reverse the list.
             vertices.Reverse();
 
-            vertexBuffer = new VertexBuffer(GameServices.GraphicsDevice, typeof(VertexPositionColorTexture), vertices.Count, BufferUsage.WriteOnly);
-            vertexBuffer.SetData<VertexPositionColorTexture>(vertices.ToArray());
+            if (primitiveCount == 0)
+            {
+                vertexBuffer = null;
+            }
+            else
+            {
+                vertexBuffer = new VertexBuffer(GameServices.GraphicsDevice, typeof(VertexPositionColorTexture), vertices.Count, BufferUsage.WriteOnly);
+                vertexBuffer.SetData<VertexPositionColorTexture>(vertices.ToArray());
+            }
         }
     }
 }

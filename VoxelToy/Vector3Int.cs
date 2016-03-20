@@ -23,7 +23,7 @@ namespace VoxelToy
             return new Vector3(X, Y, Z);
         }
 
-        public string ToString()
+        public override string ToString()
         {
             return "(" + X.ToString() + ", " + Y.ToString() + ", " + Z.ToString() + ")";
         }

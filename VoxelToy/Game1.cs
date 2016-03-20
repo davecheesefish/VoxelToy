@@ -43,8 +43,8 @@ namespace VoxelToy
 
             BlockType.RegisterStandardBlockTypes();
 
-            world = new World(10, 10, new Environment.Generators.FlatTerrainGenerator());
-            camera = new Camera(new Vector3(0, 0, 0), new Vector3(100, 16, 100));
+            world = new World(10, 10, new Environment.Generators.PerlinTerrainGenerator(1000));
+            camera = new Camera(new Vector3(0, 0, 0), new Vector3(80, 16, 80));
 
             // Set sampler state to PointWrap to avoid blurry textures
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
@@ -84,9 +84,9 @@ namespace VoxelToy
                 Exit();
 
             Vector3 cameraPos = camera.Position;
-            cameraPos.X = camera.Target.X + 30.0f * (float)Math.Cos(gameTime.TotalGameTime.TotalSeconds / 3.0);
-            cameraPos.Y = camera.Target.Y + 5.0f + (10.0f * ((float)Math.Cos(gameTime.TotalGameTime.TotalSeconds / 3.0) + 1.0f) / 2.0f);
-            cameraPos.Z = camera.Target.Z + 50.0f * (float)Math.Sin(gameTime.TotalGameTime.TotalSeconds / 3.0);
+            cameraPos.X = camera.Target.X + 90.0f * (float)Math.Cos(gameTime.TotalGameTime.TotalSeconds / 3.0);
+            cameraPos.Y = camera.Target.Y + 30.0f + (10.0f * ((float)Math.Cos(gameTime.TotalGameTime.TotalSeconds / 3.0) + 1.0f) / 2.0f);
+            cameraPos.Z = camera.Target.Z + 80.0f * (float)Math.Sin(gameTime.TotalGameTime.TotalSeconds / 3.0);
             camera.Position = cameraPos;
 
             base.Update(gameTime);
