@@ -22,18 +22,19 @@ namespace VoxelToy
         /// <summary>
         /// Position of the camera in 3D space.
         /// </summary>
-        public Vector3 Position { get; set; }
+        public Vector3 Position { get { return position; } }
+        protected Vector3 position;
 
         /// <summary>
         /// The position in the 3D space that the camera is looking at.
         /// </summary>
-        public Vector3 Target { get; set; }
-
+        public Vector3 Target { get { return target; } }
+        protected Vector3 target;
 
         public Camera(Vector3 position, Vector3 target)
         {
-            this.Position = position;
-            this.Target = target;
+            this.position = position;
+            this.target = target;
         }
     }
 }

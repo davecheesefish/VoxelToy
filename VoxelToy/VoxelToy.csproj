@@ -45,6 +45,7 @@
     <Compile Include="Environment\Generators\FlatTerrainGenerator.cs" />
     <Compile Include="Environment\Generators\PerlinTerrainGenerator.cs" />
     <Compile Include="Environment\Generators\TerrainGenerator.cs" />
+    <Compile Include="FreeCamera.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="GameSettings.cs" />
     <Compile Include="Noise\PerlinNoise.cs" />
