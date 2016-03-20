@@ -56,7 +56,7 @@ namespace VoxelToy
         {
             float aspectRatio = (float)GameServices.GraphicsDevice.Viewport.Width / (float)GameServices.GraphicsDevice.Viewport.Height;
 
-            pfovMatrix = Matrix.CreatePerspectiveFieldOfView(FieldOfView, aspectRatio, 1.0f, 1000.0f);
+            pfovMatrix = Matrix.CreatePerspectiveFieldOfView(FieldOfView, aspectRatio, 0.001f, 1000.0f);
         }
     }
 }
