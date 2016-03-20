@@ -74,6 +74,10 @@ namespace VoxelToy
             MoveTarget();
         }
 
+        /// <summary>
+        /// Rotates the camera around its local Y axis.
+        /// </summary>
+        /// <param name="amount"></param>
         public void RotateY(float amount)
         {
             hAngle += amount;
@@ -82,6 +86,10 @@ namespace VoxelToy
             MoveTarget();
         }
 
+        /// <summary>
+        /// Rotates the camera around its local X axis.
+        /// </summary>
+        /// <param name="amount"></param>
         public void RotateX(float amount)
         {
             vAngle += amount;

@@ -48,6 +48,7 @@
     <Compile Include="FreeCamera.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="GameSettings.cs" />
+    <Compile Include="Input.cs" />
     <Compile Include="Noise\PerlinNoise.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

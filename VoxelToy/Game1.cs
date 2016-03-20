@@ -16,6 +16,7 @@ namespace VoxelToy
 
         FreeCamera camera;
         World world;
+        Input input;
 
         public Game1()
         {
@@ -31,8 +32,10 @@ namespace VoxelToy
         /// </summary>
         protected override void Initialize()
         {
-            this.IsMouseVisible = true;
-            
+            this.IsMouseVisible = false;
+            input = new Input(this);
+            input.LockMouse();
+
             // Set up game services container.
             GameServices.ContentManager = Content;
             GameServices.GraphicsDeviceManager = graphics;
@@ -80,47 +83,54 @@ namespace VoxelToy
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
+            input.Update();
 
-            KeyboardState kbState = Keyboard.GetState();
-            // Right
-            if (kbState.IsKeyDown(Keys.D))
+            // Mouse lock
+            if (input.KeyWasPressed(Keys.M))
             {
-                camera.TranslateX(5.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                if (input.MouseIsLocked)
+                {
+                    input.UnlockMouse();
+                }
+                else
+                {
+                    input.LockMouse();
+                }
+            }
+
+            // Right
+            if (input.IsKeyDown(Keys.D))
+            {
+                camera.TranslateX(8.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
             }
 
             // Left
-            if (kbState.IsKeyDown(Keys.A))
+            if (input.IsKeyDown(Keys.A))
             {
-                camera.TranslateX(5.0f * -(float)gameTime.ElapsedGameTime.TotalSeconds);
-            }
-
-            // Up
-            if (kbState.IsKeyDown(Keys.LeftShift))
-            {
-                camera.TranslateY(5.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
-            }
-
-            // Down
-            if (kbState.IsKeyDown(Keys.LeftControl))
-            {
-                camera.TranslateY(5.0f * -(float)gameTime.ElapsedGameTime.TotalSeconds);
+                camera.TranslateX(8.0f * -(float)gameTime.ElapsedGameTime.TotalSeconds);
             }
 
             // Forward
-            if (kbState.IsKeyDown(Keys.W))
+            if (input.IsKeyDown(Keys.W))
             {
-                camera.TranslateZ(5.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                camera.TranslateZ(8.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
             }
 
             // Backward
-            if (kbState.IsKeyDown(Keys.S))
+            if (input.IsKeyDown(Keys.S))
             {
-                camera.TranslateZ(5.0f * -(float)gameTime.ElapsedGameTime.TotalSeconds);
+                camera.TranslateZ(8.0f * -(float)gameTime.ElapsedGameTime.TotalSeconds);
             }
 
-            //camera.RotateX(0.01f);
+            // Rotation
+            if (input.MouseIsLocked)
+            {
+                camera.RotateY(0.8f * (float)gameTime.ElapsedGameTime.TotalSeconds * (float)-input.GetMouseMovement().X);
+                camera.RotateX(0.8f * (float)gameTime.ElapsedGameTime.TotalSeconds * (float)input.GetMouseMovement().Y);
+            }
+
+            if (input.IsKeyDown(Keys.Escape))
+                Exit();
 
             base.Update(gameTime);
         }
