@@ -26,11 +26,21 @@ namespace VoxelToy.Environment
             this.blockType = blockType;
         }
 
+        /// <summary>
+        /// Used when rebuilding geometry, this function sets the given face as being visible,
+        /// i.e. facing a transparent block.
+        /// </summary>
+        /// <param name="face"></param>
         public void SetFaceVisible(AxisDirections face)
         {
             VisibleFaces |= face;
         }
 
+        /// <summary>
+        /// Used when rebuilding geometry, this function sets the given face as being hidden,
+        /// i.e. facing an opaque block.
+        /// </summary>
+        /// <param name="face"></param>
         public void SetFaceHidden(AxisDirections face)
         {
             VisibleFaces &= 255 - face;

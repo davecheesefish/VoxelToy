@@ -11,14 +11,31 @@ namespace VoxelToy.Environment
     class World
     {
         /// <summary>
+        /// Width of the map along the X axis, in blocks.
+        /// </summary>
+        public int WidthInBlocks { get { return width * Chunk.WIDTH; } }
+        
+        /// <summary>
         /// Width of the map along the X axis, in chunks.
         /// </summary>
+        public int WidthInChunks { get { return width; } }
         private int width;
+
+        /// <summary>
+        /// Length of the map along the Z axis, in blocks.
+        /// </summary>
+        public int LengthInBlocks { get { return length * Chunk.LENGTH; } }
 
         /// <summary>
         /// Length of the map along the Z axis, in chunks.
         /// </summary>
+        public int LengthInChunks { get { return length; } }
         private int length;
+
+        /// <summary>
+        /// The height of the map along the Y axis, in blocks.
+        /// </summary>
+        public int HeightInBlocks { get { return Chunk.HEIGHT; } }
 
         private TerrainGenerator generator;
 
@@ -40,17 +57,7 @@ namespace VoxelToy.Environment
             this.length = length;
 
             this.generator = generator;
-
-            // Initialise chunks array
-            chunks = new Chunk[width, length];
-            for (int x = 0; x < width; ++x)
-            {
-                for (int z = 0; z < length; ++z)
-                {
-                    chunks[x, z] = new Chunk(x, z);
-                    generator.GenerateChunk(chunks[x, z]);
-                }
-            }
+            Generate();
 
             effect = new BasicEffect(GameServices.GraphicsDevice);
             effect.VertexColorEnabled = true;
@@ -101,22 +108,128 @@ namespace VoxelToy.Environment
         }
 
         /// <summary>
+        /// Generates new terrain for this world.
+        /// </summary>
+        public void Generate()
+        {
+            // Initialise chunks array
+            chunks = new Chunk[width, length];
+            for (int x = 0; x < width; ++x)
+            {
+                for (int z = 0; z < length; ++z)
+                {
+                    chunks[x, z] = new Chunk(x, z);
+                    generator.GenerateChunk(chunks[x, z]);
+                }
+            }
+
+            generator.GenerateStructures(this);
+        }
+
+        /// <summary>
+        /// Replaces the block at the position specified by the co-ordinates.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <param name="newBlock">The new block to put in this position.</param>
+        public void ReplaceBlock(int x, int y, int z, Block newBlock)
+        {
+            Chunk chunk = ChunkAt(x, y, z);
+            if (chunk == null)
+            {
+                // Invalid block location
+                return;
+            }
+
+            // Get co-ordinates within the chunk
+            x = x % Chunk.WIDTH;
+            y = y % Chunk.HEIGHT;
+            z = z % Chunk.LENGTH;
+
+            chunk.ReplaceBlock(x, y, z, newBlock);
+        }
+
+        /// <summary>
+        /// Builds a structure in the world with its origin at the given position.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <param name="structure">The structure to build.</param>
+        public void BuildStructure(int x, int y, int z, Structures.Structure structure)
+        {
+            Block[, ,] structureBlocks = structure.GetBlocks();
+            
+            // Move start position to account for shifted origin point.
+            x -= structure.Origin.X;
+            y -= structure.Origin.Y;
+            z -= structure.Origin.Z;
+
+            // Build the structure by replacing blocks
+            for (int structureX = 0; structureX < structure.Width; ++structureX)
+            {
+                for (int structureY = 0; structureY < structure.Height; ++structureY)
+                {
+                    for (int structureZ = 0; structureZ < structure.Length; ++structureZ)
+                    {
+                        if (structureBlocks[structureX, structureY, structureZ] != null)
+                        {
+                            ReplaceBlock(x + structureX, y + structureY, z + structureZ, structureBlocks[structureX, structureY, structureZ]);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the block at the specified co-ordinates.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <returns></returns>
+        public Block BlockAt(int x, int y, int z)
+        {
+            Chunk chunk = ChunkAt(x, y, z);
+            if (chunk == null)
+            {
+                // Invalid block location
+                return null;
+            }
+
+            // Get co-ordinates within the chunk
+            x = x % Chunk.WIDTH;
+            y = y % Chunk.HEIGHT;
+            z = z % Chunk.LENGTH;
+
+            return chunk.BlockAt(x, y, z);
+        }
+
+        /// <summary>
         /// Returns the chunk at the given position.
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <param name="z"></param>
         /// <returns></returns>
-        private Chunk ChunkAt(int x, int z)
+        private Chunk ChunkAt(int x, int y, int z)
         {
+            // Make sure co-ordinates are positive
+            if (x < 0 || y < 0 || z < 0)
+            {
+                return null;
+            }
+
             // Calculate the chunk that the given co-ordinates are in.
             int chunkX = x / Chunk.WIDTH;
             int chunkZ = z / Chunk.LENGTH;
 
             // If the given co-ordinate is outside of the world, return null.
             if (
-                chunkX < 0 || chunkX >= width ||
-                chunkZ < 0 || chunkZ >= length
+                chunkX >= width ||
+                y > Chunk.HEIGHT ||  // Map is only 1 chunk tall
+                chunkZ >= length
             )
             {
                 return null;

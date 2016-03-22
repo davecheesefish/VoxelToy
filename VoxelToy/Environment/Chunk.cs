@@ -25,7 +25,7 @@ namespace VoxelToy.Environment
         /// <summary>
         /// Side length of an individual chunk along the Z axis.
         /// </summary>
-        public const byte LENGTH = 32;
+        public const byte LENGTH = 16;
 
         /// <summary>
         /// X co-ordinate of this chunk, in chunks.

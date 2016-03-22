@@ -145,6 +145,8 @@ namespace VoxelToy.Environment
             // Register other block types
             Register(new BlockType("Grass", new Rectangle(0, 0, 8, 8), new Rectangle(8, 0, 8, 8), new Rectangle(16, 0, 8, 8)), "grass");
             Register(new BlockType("Dirt", new Rectangle(16, 0, 8, 8)), "dirt");
+            Register(new BlockType("Wooden log", new Rectangle(24, 0, 8, 8)), "log");
+            Register(new BlockType("Leaves", new Rectangle(32, 0, 8, 8)), "leaves");
             Register(new BlockType("Debug", new Rectangle(0, 8, 8, 8)), "debug");
         }
     }

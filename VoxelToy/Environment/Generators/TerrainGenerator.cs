@@ -15,5 +15,14 @@ namespace VoxelToy.Environment.Generators
         /// </summary>
         /// <param name="chunk">The chunk to generate. The current contents of the chunk will be replaced.</param>
         public abstract void GenerateChunk(Chunk chunk);
+
+        /// <summary>
+        /// Adds pre-built structures (such as trees and buildings) to the world.
+        /// </summary>
+        /// <param name="world"></param>
+        public virtual void GenerateStructures(World world)
+        {
+            // Default is a no-op
+        }
     }
 }

@@ -46,7 +46,7 @@ namespace VoxelToy
 
             BlockType.RegisterStandardBlockTypes();
 
-            world = new World(10, 10, new Environment.Generators.PerlinTerrainGenerator(500));
+            world = new World(20, 20, new Environment.Generators.PerlinTerrainGenerator(2000000));
             camera = new FreeCamera(new Vector3(80, 40, 80));
 
             // Set sampler state to PointWrap to avoid blurry textures
