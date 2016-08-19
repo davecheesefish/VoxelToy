@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using VoxelToy.Environment;
+using VoxelToy.Graphics;
 
 namespace VoxelToy
 {
@@ -13,6 +14,7 @@ namespace VoxelToy
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        SceneRenderer sceneRenderer;
 
         FreeCamera camera;
         World world;
@@ -46,8 +48,8 @@ namespace VoxelToy
 
             BlockType.RegisterStandardBlockTypes();
 
-            world = new World(20, 20, new Environment.Generators.PerlinTerrainGenerator(2000000));
-            camera = new FreeCamera(new Vector3(80, 40, 80));
+            world = new World(5, 5, new Environment.Generators.PerlinTerrainGenerator(2000000)); //new Environment.Generators.FlatTerrainGenerator());
+            camera = new FreeCamera(new Vector3(5, 40, 5));
 
             // Set sampler state to PointWrap to avoid blurry textures
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
@@ -63,6 +65,9 @@ namespace VoxelToy
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            // Create a new SceneRenderer, which can be used to draw 3D graphics.
+            sceneRenderer = new SceneRenderer(GraphicsDevice);
 
             world.LoadContent();
         }
@@ -125,8 +130,8 @@ namespace VoxelToy
             // Rotation
             if (input.MouseIsLocked)
             {
-                camera.RotateY(0.8f * (float)gameTime.ElapsedGameTime.TotalSeconds * (float)-input.GetMouseMovement().X);
-                camera.RotateX(0.8f * (float)gameTime.ElapsedGameTime.TotalSeconds * (float)input.GetMouseMovement().Y);
+                camera.RotateY(0.3f * (float)gameTime.ElapsedGameTime.TotalSeconds * (float)-input.GetMouseMovement().X);
+                camera.RotateX(0.3f * (float)gameTime.ElapsedGameTime.TotalSeconds * (float)input.GetMouseMovement().Y);
             }
 
             if (input.IsKeyDown(Keys.Escape))
@@ -143,7 +148,10 @@ namespace VoxelToy
         {
             GraphicsDevice.Clear(Color.SkyBlue);
 
-            world.Draw(camera);
+            // Draw the world.
+            sceneRenderer.Begin(camera);
+            world.Draw(sceneRenderer);
+            sceneRenderer.End();
 
             base.Draw(gameTime);
         }

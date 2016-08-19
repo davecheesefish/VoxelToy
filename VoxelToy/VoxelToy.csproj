@@ -50,6 +50,9 @@
     <Compile Include="FreeCamera.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="GameSettings.cs" />
+    <Compile Include="Graphics\AlphaBlendedPrimitiveRenderable.cs" />
+    <Compile Include="Graphics\PrimitiveRenderable.cs" />
+    <Compile Include="Graphics\SceneRenderer.cs" />
     <Compile Include="Input.cs" />
     <Compile Include="Noise\PerlinNoise.cs" />
     <Compile Include="Program.cs" />

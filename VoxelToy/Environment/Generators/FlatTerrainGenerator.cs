@@ -33,5 +33,27 @@ namespace VoxelToy.Environment.Generators
                 }
             }
         }
+
+        public override void GenerateStructures(World world)
+        {
+            int worldWidth = world.WidthInBlocks;
+            int worldHeight = world.HeightInBlocks;
+            int worldLength = world.LengthInBlocks;
+
+            for (int x = 0; x < worldWidth; ++x)
+            {
+                for (int z = 0; z < worldLength; ++z)
+                {
+                    // First, see if we should create a structure here.
+                    if (x % 10 == 0 && z % 10 == 0)
+                    {
+                        for (int y = worldHeight - 1; y >= GROUND_LEVEL; --y)
+                        {
+                            world.ReplaceBlock(x, y, z, new Block(BlockType.Get("debug")));
+                        }
+                    }
+                }
+            }
+        }
     }
 }

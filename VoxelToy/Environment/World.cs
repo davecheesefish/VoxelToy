@@ -70,12 +70,14 @@ namespace VoxelToy.Environment
             effect.Texture = blockTexture;
         }
 
-        public void Draw(Camera camera)
+        public void Draw(Graphics.SceneRenderer renderer)
         {
-            effect.View = camera.LookAtMatrix;
+            effect.View = renderer.Camera.LookAtMatrix;
             effect.Projection = GameSettings.PfovMatrix;
 
             Chunk chunk;
+
+            // Draw geometry
             for (int x = 0; x < width; ++x)
             {
                 for (int z = 0; z < length; ++z)
@@ -85,23 +87,25 @@ namespace VoxelToy.Environment
                     // If necessary, rebuild the chunk's geometry.
                     if (chunk.IsDirty)
                     {
-                        chunk.Rebuild();
+                        chunk.Rebuild(renderer);
+                    }
+                    else
+                    {
+                        // Else just rebuild transparent vertices to ensure correct draw order.
+                        // TODO: Perform this only when the player moves, not every frame.
+                        chunk.ReconstructVertices(renderer, true);
                     }
 
-                    // If there are no vertices to draw, skip this chunk.
-                    if (chunk.VertexBuffer == null)
+                    // If there are opaque vertices to draw, do so.
+                    if (chunk.OpaqueVertexBuffer != null)
                     {
-                        continue;
+                        renderer.DrawVertices(chunk.OpaqueVertexBuffer, effect);
                     }
 
-                    // Get the vertices for the chunk
-                    GameServices.GraphicsDevice.SetVertexBuffer(chunk.VertexBuffer);
-
-                    // Draw blocks
-                    foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+                    // Draw any alpha-blended vertices.
+                    if (chunk.TransparentVertexBuffer != null)
                     {
-                        pass.Apply();
-                        GameServices.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, chunk.PrimitiveCount);
+                        renderer.DrawAlphaBlendedVertices(chunk.TransparentVertexBuffer, effect, new Vector3(x * Chunk.WIDTH, 0, z * Chunk.LENGTH));
                     }
                 }
             }

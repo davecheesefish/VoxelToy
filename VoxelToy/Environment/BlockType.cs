@@ -17,6 +17,17 @@ namespace VoxelToy.Environment
         /// </summary>
         public bool IsInvisible = false;
 
+        /// <summary>
+        /// How much light is blocked as it passes through.
+        /// 0 is fully transparent. 255 is fully opaque.
+        /// </summary>
+        public byte Opacity = 255;
+
+        /// <summary>
+        /// Whether this block type has a transparent texture. Defaults to false.
+        /// </summary>
+        public bool IsAlphaBlended = false;
+
         private Rectangle topTextureRect;
         private Rectangle sideTextureRect;
         private Rectangle bottomTextureRect;
@@ -146,8 +157,15 @@ namespace VoxelToy.Environment
             Register(new BlockType("Grass", new Rectangle(0, 0, 8, 8), new Rectangle(8, 0, 8, 8), new Rectangle(16, 0, 8, 8)), "grass");
             Register(new BlockType("Dirt", new Rectangle(16, 0, 8, 8)), "dirt");
             Register(new BlockType("Wooden log", new Rectangle(24, 0, 8, 8)), "log");
-            Register(new BlockType("Leaves", new Rectangle(32, 0, 8, 8)), "leaves");
-            Register(new BlockType("Debug", new Rectangle(0, 8, 8, 8)), "debug");
+
+            BlockType leavesBlockType = new BlockType("Leaves", new Rectangle(32, 0, 8, 8));
+            leavesBlockType.Opacity = 128;
+            leavesBlockType.IsAlphaBlended = true;
+            Register(leavesBlockType, "leaves");
+
+            BlockType debugBlockType = new BlockType("Debug", new Rectangle(0, 8, 8, 8));
+            debugBlockType.IsAlphaBlended = true;
+            Register(debugBlockType, "debug");
         }
     }
 }

@@ -50,11 +50,27 @@ namespace VoxelToy.Environment
         public bool IsDirty { get { return isDirty; } }
         private bool isDirty = true;
 
-        public VertexBuffer VertexBuffer { get { return vertexBuffer; } }
-        private VertexBuffer vertexBuffer;
+        public VertexBuffer OpaqueVertexBuffer { get { return opaqueVertexBuffer; } }
+        private VertexBuffer opaqueVertexBuffer;
 
-        public int PrimitiveCount { get { return primitiveCount; } }
-        private int primitiveCount = 0;
+        public int OpaquePrimitiveCount { get { return opaquePrimitiveCount; } }
+        private int opaquePrimitiveCount = 0;
+
+        public VertexBuffer TransparentVertexBuffer { get { return transparentVertexBuffer; } }
+        private VertexBuffer transparentVertexBuffer;
+
+        public int TransparentPrimitiveCount { get { return transparentPrimitiveCount; } }
+        private int transparentPrimitiveCount = 0;
+
+
+        /// <summary>
+        /// Structure for vertex rebuild queue items.
+        /// </summary>
+        private struct VertexRebuildQueueItem
+        {
+            public Block Block;
+            public Vector3Int Position;
+        }
  
 
         public Chunk(int x, int z)
@@ -104,10 +120,10 @@ namespace VoxelToy.Environment
         /// <summary>
         /// Rebuilds this chunk's geometry.
         /// </summary>
-        public void Rebuild()
+        public void Rebuild(Graphics.SceneRenderer renderer)
         {
             ReconstructBlockFaceVisibility();
-            ReconstructVertices();
+            ReconstructVertices(renderer);
 
             // Reset dirty flag.
             isDirty = false;
@@ -140,42 +156,42 @@ namespace VoxelToy.Environment
                         // Now show faces that are open to the air.
                         // +X face
                         adjacentBlock = BlockAt(x + 1, y, z);
-                        if (adjacentBlock == null || adjacentBlock.BlockType.IsInvisible)
+                        if (adjacentBlock == null || adjacentBlock.BlockType.IsInvisible || adjacentBlock.BlockType.IsAlphaBlended)
                         {
                             block.SetFaceVisible(AxisDirections.XPositive);
                         }
 
                         // -X face
                         adjacentBlock = BlockAt(x - 1, y, z);
-                        if (adjacentBlock == null || adjacentBlock.BlockType.IsInvisible)
+                        if (adjacentBlock == null || adjacentBlock.BlockType.IsInvisible || adjacentBlock.BlockType.IsAlphaBlended)
                         {
                             block.SetFaceVisible(AxisDirections.XNegative);
                         }
 
                         // +Y face
                         adjacentBlock = BlockAt(x, y + 1, z);
-                        if (adjacentBlock == null || adjacentBlock.BlockType.IsInvisible)
+                        if (adjacentBlock == null || adjacentBlock.BlockType.IsInvisible || adjacentBlock.BlockType.IsAlphaBlended)
                         {
                             block.SetFaceVisible(AxisDirections.YPositive);
                         }
 
                         // -Y face
                         adjacentBlock = BlockAt(x, y - 1, z);
-                        if (adjacentBlock == null || adjacentBlock.BlockType.IsInvisible)
+                        if (adjacentBlock == null || adjacentBlock.BlockType.IsInvisible || adjacentBlock.BlockType.IsAlphaBlended)
                         {
                             block.SetFaceVisible(AxisDirections.YNegative);
                         }
 
                         // +Z face
                         adjacentBlock = BlockAt(x, y, z + 1);
-                        if (adjacentBlock == null || adjacentBlock.BlockType.IsInvisible)
+                        if (adjacentBlock == null || adjacentBlock.BlockType.IsInvisible || adjacentBlock.BlockType.IsAlphaBlended)
                         {
                             block.SetFaceVisible(AxisDirections.ZPositive);
                         }
 
                         // -Z face
                         adjacentBlock = BlockAt(x, y, z - 1);
-                        if (adjacentBlock == null || adjacentBlock.BlockType.IsInvisible)
+                        if (adjacentBlock == null || adjacentBlock.BlockType.IsInvisible || adjacentBlock.BlockType.IsAlphaBlended)
                         {
                             block.SetFaceVisible(AxisDirections.ZNegative);
                         }
@@ -187,14 +203,18 @@ namespace VoxelToy.Environment
         /// <summary>
         /// Reconstructs voxel vertices for the world, based on visible block face data.
         /// </summary>
-        private void ReconstructVertices()
+        /// <param name="renderer">The SceneRenderer which will be used to render the vertices.</param>
+        /// <param name="alphaBlendedOnly">If true, only alpha-blended vertices will be reconstructed.</param>
+        public void ReconstructVertices(Graphics.SceneRenderer renderer, bool alphaBlendedOnly = false)
         {
             Block block;
-            List<VertexPositionColorTexture> vertices = new List<VertexPositionColorTexture>();
+            List<VertexRebuildQueueItem> alphaBlendedBlocksToRebuild = new List<VertexRebuildQueueItem>(); // Using a List so this can be depth-sorted.
+            Queue<VertexRebuildQueueItem> opaqueBlocksToRebuild = new Queue<VertexRebuildQueueItem>();
+            List<VertexPositionColorTexture> alphaBlendedVertices = new List<VertexPositionColorTexture>();
+            List<VertexPositionColorTexture> opaqueVertices = new List<VertexPositionColorTexture>();
             // TODO: Use an array instead of a list
 
-            primitiveCount = 0;
-
+            // Queue up blocks to be processed.
             for (int x = 0; x < WIDTH; ++x)
             {
                 for (int y = 0; y < HEIGHT; ++y)
@@ -203,132 +223,87 @@ namespace VoxelToy.Environment
                     {
                         block = BlockAt(x, y, z);
 
-                        // If the block is invisible, skip geometry creation.
                         if (block.BlockType.IsInvisible)
                         {
+                            // Skip invisible blocks as they have no vertices.
                             continue;
                         }
-
-                        Vector3Int worldPos = new Vector3Int(chunkX * WIDTH + x, y, chunkZ * LENGTH + z);
-                        //Console.WriteLine(worldPos.ToString());
-                        // Add vertices for each face to chunk vertices
-
-                        // Construct vectors for all corners
-                        Vector3 xyz = new Vector3(worldPos.X, worldPos.Y, worldPos.Z);
-                        Vector3 pxyz = new Vector3(worldPos.X + 1, worldPos.Y, worldPos.Z);
-                        Vector3 xpyz = new Vector3(worldPos.X, worldPos.Y + 1, worldPos.Z);
-                        Vector3 pxpyz = new Vector3(worldPos.X + 1, worldPos.Y + 1, worldPos.Z);
-                        Vector3 xypz = new Vector3(worldPos.X, worldPos.Y, worldPos.Z + 1);
-                        Vector3 pxypz = new Vector3(worldPos.X + 1, worldPos.Y, worldPos.Z + 1);
-                        Vector3 xpypz = new Vector3(worldPos.X, worldPos.Y + 1, worldPos.Z + 1);
-                        Vector3 pxpypz = new Vector3(worldPos.X + 1, worldPos.Y + 1, worldPos.Z + 1);
-
-                        Vector2[] uvCoords; // UV co-ordinates for each vertex.
-
-                        if ((block.VisibleFaces & AxisDirections.XNegative) > 0)
+                        else if (block.BlockType.IsAlphaBlended)
                         {
-                            uvCoords = block.BlockType.GetUvCoordinates(AxisDirections.XNegative);
-
-                            vertices.Add(new VertexPositionColorTexture(xypz, Color.White, uvCoords[0]));
-                            vertices.Add(new VertexPositionColorTexture(xpypz, Color.White, uvCoords[1]));
-                            vertices.Add(new VertexPositionColorTexture(xpyz, Color.White, uvCoords[2]));
-
-                            vertices.Add(new VertexPositionColorTexture(xypz, Color.White, uvCoords[0]));
-                            vertices.Add(new VertexPositionColorTexture(xpyz, Color.White, uvCoords[2]));
-                            vertices.Add(new VertexPositionColorTexture(xyz, Color.White, uvCoords[3]));
-
-                            primitiveCount += 2;
+                            // Add alpha blended blocks to alpha blended queue.
+                            VertexRebuildQueueItem queueItem = new VertexRebuildQueueItem();
+                            queueItem.Block = block;
+                            queueItem.Position = new Vector3Int(x, y, z);
+                            alphaBlendedBlocksToRebuild.Add(queueItem);
                         }
-
-                        if ((block.VisibleFaces & AxisDirections.XPositive) > 0)
+                        else if (!alphaBlendedOnly)
                         {
-                            uvCoords = block.BlockType.GetUvCoordinates(AxisDirections.XPositive);
-
-                            vertices.Add(new VertexPositionColorTexture(pxyz, Color.White, uvCoords[0]));
-                            vertices.Add(new VertexPositionColorTexture(pxpyz, Color.White, uvCoords[1]));
-                            vertices.Add(new VertexPositionColorTexture(pxpypz, Color.White, uvCoords[2]));
-
-                            vertices.Add(new VertexPositionColorTexture(pxyz, Color.White, uvCoords[0]));
-                            vertices.Add(new VertexPositionColorTexture(pxpypz, Color.White, uvCoords[2]));
-                            vertices.Add(new VertexPositionColorTexture(pxypz, Color.White, uvCoords[3]));
-
-                            primitiveCount += 2;
-                        }
-
-                        if ((block.VisibleFaces & AxisDirections.YNegative) > 0)
-                        {
-                            uvCoords = block.BlockType.GetUvCoordinates(AxisDirections.YNegative);
-
-                            vertices.Add(new VertexPositionColorTexture(xypz, Color.White, uvCoords[0]));
-                            vertices.Add(new VertexPositionColorTexture(xyz, Color.White, uvCoords[1]));
-                            vertices.Add(new VertexPositionColorTexture(pxyz, Color.White, uvCoords[2]));
-
-                            vertices.Add(new VertexPositionColorTexture(xypz, Color.White, uvCoords[0]));
-                            vertices.Add(new VertexPositionColorTexture(pxyz, Color.White, uvCoords[2]));
-                            vertices.Add(new VertexPositionColorTexture(pxypz, Color.White, uvCoords[3]));
-
-                            primitiveCount += 2;
-                        }
-
-                        if ((block.VisibleFaces & AxisDirections.YPositive) > 0)
-                        {
-                            uvCoords = block.BlockType.GetUvCoordinates(AxisDirections.YPositive);
-
-                            vertices.Add(new VertexPositionColorTexture(xpyz, Color.White, uvCoords[0]));
-                            vertices.Add(new VertexPositionColorTexture(xpypz, Color.White, uvCoords[1]));
-                            vertices.Add(new VertexPositionColorTexture(pxpypz, Color.White, uvCoords[2]));
-
-                            vertices.Add(new VertexPositionColorTexture(xpyz, Color.White, uvCoords[0]));
-                            vertices.Add(new VertexPositionColorTexture(pxpypz, Color.White, uvCoords[2]));
-                            vertices.Add(new VertexPositionColorTexture(pxpyz, Color.White, uvCoords[3]));
-
-                            primitiveCount += 2;
-                        }
-
-                        if ((block.VisibleFaces & AxisDirections.ZNegative) > 0)
-                        {
-                            uvCoords = block.BlockType.GetUvCoordinates(AxisDirections.ZNegative);
-
-                            vertices.Add(new VertexPositionColorTexture(xyz, Color.White, uvCoords[0]));
-                            vertices.Add(new VertexPositionColorTexture(xpyz, Color.White, uvCoords[1]));
-                            vertices.Add(new VertexPositionColorTexture(pxpyz, Color.White, uvCoords[2]));
-
-                            vertices.Add(new VertexPositionColorTexture(xyz, Color.White, uvCoords[0]));
-                            vertices.Add(new VertexPositionColorTexture(pxpyz, Color.White, uvCoords[2]));
-                            vertices.Add(new VertexPositionColorTexture(pxyz, Color.White, uvCoords[3]));
-
-                            primitiveCount += 2;
-                        }
-
-                        if ((block.VisibleFaces & AxisDirections.ZPositive) > 0)
-                        {
-                            uvCoords = block.BlockType.GetUvCoordinates(AxisDirections.ZPositive);
-
-                            vertices.Add(new VertexPositionColorTexture(pxypz, Color.White, uvCoords[0]));
-                            vertices.Add(new VertexPositionColorTexture(pxpypz, Color.White, uvCoords[1]));
-                            vertices.Add(new VertexPositionColorTexture(xpypz, Color.White, uvCoords[2]));
-
-                            vertices.Add(new VertexPositionColorTexture(pxypz, Color.White, uvCoords[0]));
-                            vertices.Add(new VertexPositionColorTexture(xpypz, Color.White, uvCoords[2]));
-                            vertices.Add(new VertexPositionColorTexture(xypz, Color.White, uvCoords[3]));
-
-                            primitiveCount += 2;
+                            // Add opaque blocks to opaque queue.
+                            VertexRebuildQueueItem queueItem = new VertexRebuildQueueItem();
+                            queueItem.Block = block;
+                            queueItem.Position = new Vector3Int(x, y, z);
+                            opaqueBlocksToRebuild.Enqueue(queueItem);
                         }
                     }
                 }
             }
 
-            // For some reason the list converts to an array in the wrong order, so reverse the list.
-            vertices.Reverse();
+            // Depth-sort alpha blended block list.
+            alphaBlendedBlocksToRebuild = alphaBlendedBlocksToRebuild.OrderBy(q => ((q.Position.ToVector3() - renderer.Camera.Position).LengthSquared())).ToList();
 
-            if (primitiveCount == 0)
+            // Reset primitive counts.
+            transparentPrimitiveCount = 0;
+            if (!alphaBlendedOnly)
             {
-                vertexBuffer = null;
+                opaquePrimitiveCount = 0;
+            }
+
+            // Process alpha-blended blocks.
+            foreach (VertexRebuildQueueItem currentQueueItem in alphaBlendedBlocksToRebuild)
+            {
+                Vector3Int worldPosition = new Vector3Int(chunkX * WIDTH + currentQueueItem.Position.X, currentQueueItem.Position.Y, chunkZ * LENGTH + currentQueueItem.Position.Z);
+                alphaBlendedVertices.AddRange(currentQueueItem.Block.GetVertices(worldPosition));
+            }
+            transparentPrimitiveCount = alphaBlendedVertices.Count / 3;
+
+            // Process opaque blocks.
+            if (!alphaBlendedOnly)
+            {
+                VertexRebuildQueueItem currentQueueItem;
+                while (opaqueBlocksToRebuild.Count > 0)
+                {
+                    currentQueueItem = opaqueBlocksToRebuild.Dequeue();
+                    Vector3Int worldPosition = new Vector3Int(chunkX * WIDTH + currentQueueItem.Position.X, currentQueueItem.Position.Y, chunkZ * LENGTH + currentQueueItem.Position.Z);
+                    opaqueVertices.AddRange(currentQueueItem.Block.GetVertices(worldPosition));
+                }
+                opaquePrimitiveCount = opaqueVertices.Count / 3;
+            }
+
+            // For some reason list converts to an array in the wrong order, so reverse the lists.
+            // TODO: Fix this.
+            alphaBlendedVertices.Reverse();
+            if (transparentPrimitiveCount == 0)
+            {
+                transparentVertexBuffer = null;
             }
             else
             {
-                vertexBuffer = new VertexBuffer(GameServices.GraphicsDevice, typeof(VertexPositionColorTexture), vertices.Count, BufferUsage.WriteOnly);
-                vertexBuffer.SetData<VertexPositionColorTexture>(vertices.ToArray());
+                transparentVertexBuffer = new VertexBuffer(renderer.GraphicsDevice, typeof(VertexPositionColorTexture), alphaBlendedVertices.Count, BufferUsage.WriteOnly);
+                transparentVertexBuffer.SetData<VertexPositionColorTexture>(alphaBlendedVertices.ToArray());
+            }
+
+            if (!alphaBlendedOnly)
+            {
+                opaqueVertices.Reverse();
+                if (opaquePrimitiveCount == 0)
+                {
+                    opaqueVertexBuffer = null;
+                }
+                else
+                {
+                    opaqueVertexBuffer = new VertexBuffer(renderer.GraphicsDevice, typeof(VertexPositionColorTexture), opaqueVertices.Count, BufferUsage.WriteOnly);
+                    opaqueVertexBuffer.SetData<VertexPositionColorTexture>(opaqueVertices.ToArray());
+                }
             }
         }
     }
